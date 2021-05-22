@@ -1,0 +1,42 @@
+#!/bin/bash
+if [ -z "${KUBECTL_BIN}" ]; then
+    if hash kubectl 2>/dev/null; then
+        KUBECTL_BIN='kubectl'
+    elif hash kubectl.exe 2>/dev/null; then
+        KUBECTL_BIN='kubectl.exe'
+    elif hash microk8s 2>/dev/null; then
+        KUBECTL_BIN='microk8s.kubectl'
+    fi
+fi
+
+if ! hash "${KUBECTL_BIN}"; then    
+    echo >&2 "kubectl is not installed"
+    exit 1
+fi
+
+readonly PROGNAME=$(basename $0)
+
+usage="${PROGNAME} <search term>
+examples:
+    ${PROGNAME} my-pod-v1"
+
+if [[ ${1} != -* ]]
+then
+    pod="${1}"
+else
+	echo "no pod to delete"
+fi
+
+pod="${1}"
+
+IFS=',' read -r -a pods_to_match <<< "${pod}"
+
+
+#Count the total words
+echo "There are ${#pods_to_match[*]} pods."
+
+# Print each value of the array by using the loop
+for val in "${pods_to_match[@]}";
+do
+  kubectl delete po -l app="$val"
+done
